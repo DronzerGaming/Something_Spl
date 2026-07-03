@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Special Surprise</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Global & Pastel Theme */
+        :root {
+            --bg-color: #fdf2f8; /* Soft pastel pink */
+            --primary: #fbcfe8;
+            --accent: #f472b6;
+            --text-main: #4a4a4a;
+            --white: #ffffff;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100vh;
+            background-color: var(--bg-color);
+            font-family: 'Poppins', sans-serif;
+            color: var(--text-main);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Stage Containers */
+        .stage {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1s ease-in-out;
+            z-index: 10;
+        }
+
+        .stage.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        h1 {
+            font-family: 'Dancing Script', cursive;
+            font-size: 3rem;
+            color: var(--accent);
+            margin-bottom: 20px;
+        }
+
+        /* Input & Buttons */
+        input[type="password"] {
+            padding: 12px 20px;
+            font-size: 1rem;
+            border: 2px solid var(--primary);
+            border-radius: 25px;
+            outline: none;
+            text-align: center;
+            margin-bottom: 20px;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        button {
+            padding: 10px 25px;
+            font-size: 1.1rem;
+            background-color: var(--accent);
+            color: var(--white);
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+            font-family: 'Poppins', sans-serif;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        button:hover {
+            background-color: #ec4899;
+            transform: scale(1.05);
+        }
+
+        /* Stage 2 Specific */
+        #runaway-btn {
+            position: relative; /* Starts relative, becomes absolute via JS */
+            margin-top: 20px;
+        }
+
+        /* Stage 3 Specific */
+        #game-area {
+            position: relative;
+            width: 80vw;
+            height: 60vh;
+            border: 2px dashed var(--primary);
+            border-radius: 20px;
+            margin-top: 20px;
+            background: rgba(255,255,255,0.5);
+            overflow: hidden;
+        }
+
+        .floating-icon {
+            position: absolute;
+            font-size: 2rem;
+            cursor: pointer;
+            user-select: none;
+            animation: floatUp 4s linear infinite;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(100%) scale(0.8); opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: translateY(-100vh) scale(1.2); opacity: 0; }
+        }
+
+        /* Stage 4 Specific */
+        #stage-4 {
+            overflow-y: auto;
+            padding: 40px 20px;
+            justify-content: flex-start;
+        }
+
+        .polaroid {
+            background: var(--white);
+            padding: 15px 15px 40px 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            transform: rotate(-3deg);
+            margin: 20px auto;
+            max-width: 300px;
+        }
+
+        .polaroid img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .love-letter {
+            max-width: 600px;
+            background: var(--white);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin: 20px auto;
+            line-height: 1.8;
+        }
+
+        /* Music Player */
+        .music-player {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--white);
+            padding: 15px 30px;
+            border-radius: 50px;
+            box-shadow: 0 10px 25px rgba(244, 114, 182, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        .player-controls button {
+            background: none;
+            border: none;
+            color: var(--accent);
+            font-size: 1.5rem;
+            box-shadow: none;
+            padding: 5px;
+        }
+
+        .player-controls button:hover {
+            transform: scale(1.2);
+            background: none;
+            color: #ec4899;
+        }
+
+        #track-title {
+            font-weight: 600;
+            min-width: 150px;
+        }
+
+        /* Confetti Canvas */
+        #confetti {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="confetti"></canvas>
+
+    <div id="stage-1" class="stage active">
+        <h1>Welcome.</h1>
+        <p>Answer the security question to enter.</p>
+        <p><em>What is the best day of the year? (Hint: DDMMYYYY)</em></p>
+        <input type="password" id="password" placeholder="DDMMYYYY" autocomplete="off">
+        <br>
+        <button onclick="checkPassword()">Unlock</button>
+        <p id="error-msg" style="color: red; display: none; font-size: 0.9rem;">Try again!</p>
+    </div>
+
+    <div id="stage-2" class="stage">
+        <h1>Access Granted</h1>
+        <p>Welcome! Before we proceed to the main event, you have to catch this button.</p>
+        <button id="runaway-btn">Click to continue</button>
+    </div>
+
+    <div id="stage-3" class="stage">
+        <h1>Show Some Love</h1>
+        <p>Pop 5 hearts to unlock your surprise!</p>
+        <h2 style="color: var(--accent);">Score: <span id="score">0</span> / 5</h2>
+        <div id="game-area"></div>
+    </div>
+
+    <div id="stage-4" class="stage">
+        <h1>Happy Birthday!</h1>
+        
+        <div class="polaroid">
+            <img src="YOUR_IMAGE_LINK_HERE.jpg" alt="Us">
+            <p style="font-family: 'Dancing Script', cursive; font-size: 1.5rem; margin-top: 10px;">Our Memories</p>
+        </div>
+        <div class="love-letter">
+            <p>Dear Sneha,</p>
+            <p>I wanted to make something a little different this year to celebrate you. From all the moments we've shared to all the ones still ahead, I hope this little digital surprise brings a smile to your face.</p>
+            <p>Wishing you the happiest of birthdays. Here's to more adventures, more memories, and more great music.</p>
+            <p>Yours,</p>
+            <p>Rishabh</p>
+        </div>
+    </div>
+
+    <div class="music-player" id="music-player" style="display: none;">
+        <div class="player-controls">
+            <button onclick="prevTrack()">⏮</button>
+            <button id="play-pause-btn" onclick="togglePlay()">▶</button>
+            <button onclick="nextTrack()">⏭</button>
+        </div>
+        <div id="track-title">Loading Track...</div>
+    </div>
+
+    <script>
+        // --- STAGE LOGIC ---
+        function switchStage(from, to) {
+            document.getElementById(`stage-${from}`).classList.remove('active');
+            setTimeout(() => {
+                document.getElementById(`stage-${to}`).classList.add('active');
+                if(to === 3) startGame();
+                if(to === 4) initFinale();
+            }, 1000); // Wait for fade out
+        }
+
+        // --- STAGE 1: Password ---
+        function checkPassword() {
+            const pwd = document.getElementById('password').value;
+            // CHECKING FOR SPECIFIC DATE
+            if (pwd === '29072004') {
+                switchStage(1, 2);
+            } else {
+                document.getElementById('error-msg').style.display = 'block';
+            }
+        }
+
+        // --- STAGE 2: Runaway Button ---
+        const btn = document.getElementById('runaway-btn');
+        let hoverCount = 0;
+
+        btn.addEventListener('mouseover', () => {
+            if(hoverCount < 7) { // Let it run away 4 times before they can catch it
+                btn.style.position = 'absolute';
+                const x = Math.random() * (window.innerWidth - 150);
+                const y = Math.random() * (window.innerHeight - 100);
+                btn.style.left = `${x}px`;
+                btn.style.top = `${y}px`;
+                hoverCount++;
+            }
+        });
+
+        btn.addEventListener('click', () => {
+            switchStage(2, 3);
+        });
+
+        // --- STAGE 3: Mini Game ---
+        let score = 0;
+        let gameInterval;
+
+        function startGame() {
+            const area = document.getElementById('game-area');
+            gameInterval = setInterval(() => {
+                const heart = document.createElement('div');
+                heart.innerHTML = ['💖', '✨', '💕', '⭐'][Math.floor(Math.random() * 4)];
+                heart.classList.add('floating-icon');
+                
+                // Random horizontal position
+                heart.style.left = `${Math.random() * 90}%`;
+                heart.style.bottom = '-50px';
+
+                heart.addEventListener('click', () => {
+                    score++;
+                    document.getElementById('score').innerText = score;
+                    heart.remove();
+                    if(score >= 5) {
+                        clearInterval(gameInterval);
+                        setTimeout(() => switchStage(3, 4), 500);
+                    }
+                });
+
+                area.appendChild(heart);
+                
+                // Cleanup missed icons
+                setTimeout(() => { if(heart.parentElement) heart.remove(); }, 4000);
+            }, 800);
+        }
+
+        // --- STAGE 4: Finale & Music ---
+        
+        // ==========================================
+        // ⬇️ AUDIO LINKS GO HERE ⬇️
+        // Paste your direct .mp3 or audio links into the 'src' properties
+        // ==========================================
+        const tracks = [
+            { title: "Softly - Karan Aujla", src: "YOUR_AUDIO_LINK_1.mp3" },
+            { title: "Afreen Afreen - NFAK", src: "YOUR_AUDIO_LINK_2.mp3" },
+            { title: "Our Song", src: "YOUR_AUDIO_LINK_3.mp3" }
+        ];
+        
+        let currentTrackIndex = 0;
+        let audio = new Audio();
+
+        function initFinale() {
+            startConfetti();
+            document.getElementById('music-player').style.display = 'flex';
+            loadTrack(currentTrackIndex);
+        }
+
+        function loadTrack(index) {
+            audio.src = tracks[index].src;
+            document.getElementById('track-title').innerText = tracks[index].title;
+        }
+
+        function togglePlay() {
+            const btn = document.getElementById('play-pause-btn');
+            if (audio.paused) {
+                audio.play().catch(e => console.log("Waiting for user interaction or valid audio source"));
+                btn.innerText = '⏸';
+            } else {
+                audio.pause();
+                btn.innerText = '▶';
+            }
+        }
+
+        function nextTrack() {
+            currentTrackIndex = (currentTrackIndex + 1) % tracks.length;
+            loadTrack(currentTrackIndex);
+            if (!audio.paused) audio.play();
+        }
+
+        function prevTrack() {
+            currentTrackIndex = (currentTrackIndex - 1 + tracks.length) % tracks.length;
+            loadTrack(currentTrackIndex);
+            if (!audio.paused) audio.play();
+        }
+        
+        audio.addEventListener('ended', nextTrack);
+
+        // --- Confetti Logic (Lightweight custom implementation) ---
+        function startConfetti() {
+            const canvas = document.getElementById('confetti');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const pieces = [];
+            const colors = ['#f472b6', '#fbcfe8', '#a78bfa', '#60a5fa', '#ffffff'];
+
+            for(let i = 0; i < 100; i++) {
+                pieces.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    size: Math.random() * 10 + 5,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    speedY: Math.random() * 3 + 1,
+                    speedX: Math.random() * 2 - 1,
+                    rotation: Math.random() * 360,
+                    rotationSpeed: Math.random() * 5 - 2
+                });
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                pieces.forEach(p => {
+                    ctx.save();
+                    ctx.translate(p.x + p.size/2, p.y + p.size/2);
+                    ctx.rotate(p.rotation * Math.PI / 180);
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+                    ctx.restore();
+
+                    p.y += p.speedY;
+                    p.x += p.speedX;
+                    p.rotation += p.rotationSpeed;
+
+                    if(p.y > canvas.height) {
+                        p.y = -20;
+                        p.x = Math.random() * canvas.width;
+                    }
+                });
+                requestAnimationFrame(draw);
+            }
+            draw();
+            
+            // Adjust canvas on resize
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            });
+        }
+    </script>
+</body>
+</html>
