@@ -208,8 +208,8 @@
     <div id="stage-1" class="stage active">
         <h1>Welcome.</h1>
         <p>Answer the security question to enter.</p>
-        <p><em>What is the best day of the year? (Hint: DDMMYYYY)</em></p>
-        <input type="password" id="password" placeholder="DDMMYYYY" autocomplete="off">
+        <p><em>What is the best day of the year? (Hint: DDMM)</em></p>
+        <input type="password" id="password" placeholder="DDMM" autocomplete="off">
         <br>
         <button onclick="checkPassword()">Unlock</button>
         <p id="error-msg" style="color: red; display: none; font-size: 0.9rem;">Try again!</p>
@@ -268,7 +268,7 @@
         function checkPassword() {
             const pwd = document.getElementById('password').value;
             // CHECKING FOR SPECIFIC DATE
-            if (pwd === '29072004') {
+            if (pwd === '2907') {
                 switchStage(1, 2);
             } else {
                 document.getElementById('error-msg').style.display = 'block';
